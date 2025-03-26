@@ -3,7 +3,7 @@
 	import * as cocoSsd from '@tensorflow-models/coco-ssd';
 	import * as tf from '@tensorflow/tfjs';
 
-	let videoElement:any;
+	let videoElement: any;
 	let predictions: any = [];
 	let isModelLoaded = false;
 	let isVideoReady = false;
@@ -16,12 +16,10 @@
 
 	// Load COCO-SSD pre-trained model
 	const loadModel = async () => {
-		await tf.ready();
-		const model = await cocoSsd.load();
+		model = await cocoSsd.load();
 		isModelLoaded = true;
-		console.log('Model loaded successfully');
+		console.log('🤖 Model loaded!');
 		tryStartDetection();
-		startDetection();
 	};
 
 	const tryStartDetection = () => {
@@ -32,20 +30,15 @@
 	};
 
 	// Start webcam feed
-	const startWebcam = () => {
-		console.log('Video dimensions:', videoElement.videoWidth, videoElement.videoHeight);
+	const startWebcam = async () => {
+		const stream = await navigator.mediaDevices.getUserMedia({ video: true });
+		videoElement.srcObject = stream;
 
-		navigator.mediaDevices
-			.getUserMedia({ video: true })
-			.then((stream) => {
-				if (!stream) return;
-				console.log('Tried to start Stream');
-
-				videoElement.srcObject = stream;
-			})
-			.catch((err) => {
-				console.error('Error accessing webcam: ', err);
-			});
+		videoElement.onloadeddata = () => {
+			isVideoReady = true;
+			console.log('🎥 Video is ready!');
+			tryStartDetection();
+		};
 	};
 
 	// Detect objects in the webcam feed
@@ -58,9 +51,8 @@
 
 		const predictions = await model.detect(videoElement);
 		console.log(predictions);
-
 		setTimeout(() => {
-			requestAnimationFrame(startDetection);
+			requestAnimationFrame(startDetection); // Loop detection
 		}, 5000);
 	};
 </script>
